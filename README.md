@@ -66,4 +66,3 @@ Contributions are welcome! Feel free to open issues or submit pull requests to i
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 ``` 
 
-This format should make it easier to copy the content directly into a README file.
