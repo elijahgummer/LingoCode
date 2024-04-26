@@ -1,68 +1,80 @@
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
+def generate_python_code(input_text):
+    # Dictionary to map human language to Python code
+    language_to_code = {
+        "print": "print(",
+        "input": "input()",
+        "variable": "variable_name =",
+        "if": "if condition:",
+        "else if": "elif condition:",
+        "else": "else:",
+        "for loop": "for item in iterable:",
+        "while loop": "while condition:",
+        "function": "def function_name():",
+        "addition": "+",
+        "subtraction": "-",
+        "multiplication": "*",
+        "division": "/",
+        "modulo": "%",
+        "greater than": ">",
+        "less than": "<",
+        "equal to": "==",
+        "not equal to": "!="
+    }
 
-class NLPInterface:
-    def __init__(self):
-        self.lemmatizer = WordNetLemmatizer()
+    # Split the input text into words
+    words = input_text.split()
 
-    def preprocess_input(self, input_text):
-        # Tokenize input text
-        tokens = word_tokenize(input_text.lower())
+    # Iterate through words to build the code
+    generated_code = ""
+    i = 0
+    while i < len(words):
+        word = words[i].lower()
 
-        # Remove stopwords and punctuation
-        stop_words = set(stopwords.words('english'))
-        filtered_tokens = [token for token in tokens if token.isalnum() and token not in stop_words]
+        if word in language_to_code:
+            generated_code += language_to_code[word]
 
-        # Lemmatization
-        lemmatized_tokens = [self.lemmatizer.lemmatize(token) for token in filtered_tokens]
+            if word == "print":
+                generated_code += "\""
+                i += 1
+                while i < len(words):
+                    if words[i].lower() in language_to_code:
+                        break
+                    generated_code += words[i] + " "
+                    i += 1
+                generated_code = generated_code.rstrip()  # Remove trailing whitespace
+                generated_code += "\""
+            elif word == "input":
+                # Do nothing, as input() doesn't require additional parameters
+                pass
+            else:
+                # Check if the next word is a variable name or condition
+                if i + 1 < len(words):
+                    next_word = words[i + 1].lower()
+                    if next_word in language_to_code:
+                        generated_code += " "
+                    else:
+                        generated_code += " " + words[i + 1] + " "
+                        i += 1
 
-        return lemmatized_tokens
-
-    def generate_code(self, input_tokens):
-        code = ""
-
-        # Convert natural language input to code
-        if "create" in input_tokens and "function" in input_tokens:
-            # Check for function name and parameters
-            func_idx = input_tokens.index("function")
-            func_name = input_tokens[func_idx - 1]
-            parameters = input_tokens[func_idx + 1:]
-
-            # Generate function definition
-            code += f"def {func_name}({', '.join(parameters)}):\n"
-            code += f"\treturn {' + '.join(parameters)}\n"
-
-        elif "define" in input_tokens and "variable" in input_tokens:
-            # Check for variable name and value
-            var_idx = input_tokens.index("variable")
-            var_name = input_tokens[var_idx - 1]
-            value = input_tokens[var_idx + 1]
-
-            # Generate variable definition
-            code += f"{var_name} = {value}\n"
-
+            generated_code += ") "
         else:
-            code = "Error: Invalid input"
+            generated_code += word + " "
+        i += 1
 
-        return code
+    return generated_code.strip()
 
-# Instantiate NLPInterface
-nlp_interface = NLPInterface()
+def main():
+    print("Welcome to Python Code Generator!")
+    print("Enter 'exit' to quit.")
 
-# Main loop
-while True:
-    # Get input from the user
-    user_input = input("Enter a coding task: ")
+    while True:
+        human_input = input("Enter a sentence describing what you want to generate code for: ")
+        if human_input.lower() == 'exit':
+            print("Exiting...")
+            break
+        
+        generated_code = generate_python_code(human_input)
+        print("Generated Python code:", generated_code)
 
-    # Preprocess input
-    preprocessed_input = nlp_interface.preprocess_input(user_input)
-
-    # Generate code
-    generated_code = nlp_interface.generate_code(preprocessed_input)
-
-    # Display generated code
-    print("\nGenerated code:")
-    print(generated_code)
-    print()
+if __name__ == "__main__":
+    main()
