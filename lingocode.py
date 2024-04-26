@@ -32,8 +32,7 @@ class NLPInterface:
 
             # Generate function definition
             code += f"def {func_name}({', '.join(parameters)}):\n"
-            code += "\t# Write your code here\n"
-            code += "\tpass\n"
+            code += f"\treturn {' + '.join(parameters)}\n"
 
         elif "define" in input_tokens and "variable" in input_tokens:
             # Check for variable name and value
