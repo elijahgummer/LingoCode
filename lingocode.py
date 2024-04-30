@@ -1,80 +1,72 @@
-def generate_python_code(input_text):
-    # Dictionary to map human language to Python code
-    language_to_code = {
-        "print": "print(",
-        "input": "input()",
-        "variable": "variable_name =",
-        "if": "if condition:",
-        "else if": "elif condition:",
-        "else": "else:",
-        "for loop": "for item in iterable:",
-        "while loop": "while condition:",
-        "function": "def function_name():",
-        "addition": "+",
-        "subtraction": "-",
-        "multiplication": "*",
-        "division": "/",
-        "modulo": "%",
-        "greater than": ">",
-        "less than": "<",
-        "equal to": "==",
-        "not equal to": "!="
-    }
+import nltk
+import random
 
-    # Split the input text into words
-    words = input_text.split()
+# NLTK setup
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+from nltk.tokenize import word_tokenize
+from nltk.tag import pos_tag
 
-    # Iterate through words to build the code
-    generated_code = ""
-    i = 0
-    while i < len(words):
-        word = words[i].lower()
+# Define some sample rules (you can expand these)
+rules = {
+    'print': {
+        'patterns': [
+            'print the value of <variable>',
+            'output the value of <variable>',
+            'display <variable>',
+        ],
+        'responses': [
+            'print(<variable>)',
+            'print("{}: {}".format("<variable>", <variable>))',
+        ]
+    },
+    'loop': {
+        'patterns': [
+            'repeat <n> times:',
+            'loop <n> times:',
+        ],
+        'responses': [
+            'for i in range(<n>):',
+            '\t# Do something <n> times',
+        ]
+    },
+    # Add more rules as needed
+}
 
-        if word in language_to_code:
-            generated_code += language_to_code[word]
+# Function to match pattern
+def match_pattern(pattern, sentence):
+    words = word_tokenize(sentence)
+    tags = pos_tag(words)
+    pattern_words = pattern.split()
+    pattern_tags = pos_tag(pattern_words)
 
-            if word == "print":
-                generated_code += "\""
-                i += 1
-                while i < len(words):
-                    if words[i].lower() in language_to_code:
-                        break
-                    generated_code += words[i] + " "
-                    i += 1
-                generated_code = generated_code.rstrip()  # Remove trailing whitespace
-                generated_code += "\""
-            elif word == "input":
-                # Do nothing, as input() doesn't require additional parameters
-                pass
-            else:
-                # Check if the next word is a variable name or condition
-                if i + 1 < len(words):
-                    next_word = words[i + 1].lower()
-                    if next_word in language_to_code:
-                        generated_code += " "
-                    else:
-                        generated_code += " " + words[i + 1] + " "
-                        i += 1
+    if len(words) != len(pattern_words):
+        return False
 
-            generated_code += ") "
-        else:
-            generated_code += word + " "
-        i += 1
+    for i in range(len(words)):
+        if pattern_words[i] == '<variable>':
+            continue
+        if pattern_words[i] != words[i] or pattern_tags[i][1] != tags[i][1]:
+            return False
+    return True
 
-    return generated_code.strip()
+# Function to generate code
+def generate_code(sentence):
+    for intent, data in rules.items():
+        for pattern in data['patterns']:
+            if match_pattern(pattern, sentence):
+                response = random.choice(data['responses'])
+                if '<variable>' in response:
+                    variable = input("Enter the value for <variable>: ")
+                    response = response.replace('<variable>', variable)
+                return response
+    return "I'm sorry, I don't understand."
 
-def main():
-    print("Welcome to Python Code Generator!")
-    print("Enter 'exit' to quit.")
-
-    while True:
-        human_input = input("Enter a sentence describing what you want to generate code for: ")
-        if human_input.lower() == 'exit':
-            print("Exiting...")
-            break
-        
-        generated_code = generate_python_code(human_input)
-        print("Generated Python code:", generated_code)
-
-if __name__ == "__main__":
-    main()
+# Main loop
+while True:
+    user_input = input("You: ")
+    if user_input.lower() == 'exit':
+        print("Exiting...")
+        break
+    code = generate_code(user_input.lower())
+    print("AI: ", code)
